@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Email Cleaner</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cleaner">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B1F3A">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--navy:#0B1F3A;--navy2:#16325C;--gold:#C9A227;--gold2:#E6C766;--bg:#F2F4F8;--card:#fff;--line:#E3E8F0;--text:#0B1F3A;--muted:#6B7A90;--red:#C0392B;--green:#1E8E5A}
+@media (prefers-color-scheme:dark){:root{--bg:#07111F;--card:#0F1E33;--line:#1E3150;--text:#E8EDF5;--muted:#8C9BB3}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+button,input{font:inherit}
+header{background:linear-gradient(160deg,var(--navy2),var(--navy));color:#fff;padding:calc(env(safe-area-inset-top) + 18px) 20px 26px;border-radius:0 0 26px 26px}
+.top{display:flex;align-items:center;gap:14px}
+.top img{width:56px;height:56px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+h1{margin:0;font-size:24px}h1 b{color:var(--gold)}
+header p{margin:4px 0 0;color:#AFC0DA;font-size:13px}
+.edit{margin-left:auto;border:1.5px solid var(--gold);background:none;color:var(--gold);border-radius:20px;padding:7px 14px;font-weight:800;font-size:13px}
+.edit.on{background:var(--gold);color:var(--navy)}
+main{padding:18px 16px calc(env(safe-area-inset-bottom) + 30px)}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:6px 4px 10px}
+.acc{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;width:100%;text-align:left;color:var(--text);box-shadow:0 1px 2px rgba(11,31,58,.05),0 6px 16px rgba(11,31,58,.06)}
+.av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:19px;flex:none}
+.who{flex:1;min-width:0}.who b{display:block;font-size:16px}.who small{color:var(--muted);font-size:12.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.go{color:var(--gold);font-size:22px;font-weight:800}
+.ops{display:none;gap:6px}.editing .ops{display:flex}.editing .go{display:none}
+.ops button{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:8px 10px;font-weight:700;font-size:12.5px}
+.ops .del{color:var(--red)}
+.add{width:100%;padding:15px;border:1.5px dashed var(--gold);background:var(--card);color:var(--text);border-radius:18px;font-weight:800;margin-top:4px}
+.empty{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;color:var(--muted);font-size:14px}
+.empty ol{padding-left:18px;margin:8px 0 0}.empty li{margin:6px 0}
+.scrim{position:fixed;inset:0;background:rgba(5,12,24,.5);display:none;z-index:9}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-radius:22px 22px 0 0;padding:12px 18px calc(env(safe-area-inset-bottom) + 18px);transform:translateY(105%);transition:transform .25s;z-index:10;max-height:92vh;overflow:auto}
+.open .scrim{display:block}.open .sheet{transform:none}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+.sheet h2{margin:0 0 4px;font-size:19px}
+label{display:block;font-size:13px;color:var(--muted);font-weight:600;margin:14px 0 6px}
+.t{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;font-size:16px;background:var(--card);color:var(--text)}
+.colors{display:flex;gap:10px;flex-wrap:wrap}
+.colors button{width:38px;height:38px;border-radius:50%;border:3px solid transparent}
+.colors button.on{border-color:var(--text)}
+.save{width:100%;margin-top:18px;padding:15px;border:0;border-radius:14px;background:var(--navy);color:#fff;font-weight:800;font-size:16px}
+@media (prefers-color-scheme:dark){.save{background:var(--gold);color:var(--navy)}}
+.ghost{width:100%;margin-top:6px;padding:12px;border:0;background:none;color:var(--muted);font-weight:700}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%);background:#101826;color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;font-weight:600;opacity:0;transition:.2s;z-index:20;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <img src="icon-180.png" alt="">
+    <div><h1>Email <b>Cleaner</b></h1><p>Choose a Gmail account</p></div>
+    <button class="edit" id="editBtn">Edit</button>
+  </div>
+</header>
+<main>
+  <h3 id="ttl">Accounts</h3>
+  <div id="list"></div>
+  <button class="add" id="addBtn">＋ Add a Gmail account</button>
+</main>
+<div id="wrap"><div class="scrim" id="scrim"></div><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const COLORS = ['#C9A227','#2B6CB0','#1E8E5A','#C0392B','#8E44AD','#0E7C86','#B7791F','#16325C'];
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let accts = [], editing = location.hash === '#edit', editIdx = -1, pick = COLORS[0];
+
+function loadA() { try { accts = JSON.parse(localStorage.getItem('ec-accounts') || '[]'); } catch (e) { accts = []; } }
+function saveA() { try { localStorage.setItem('ec-accounts', JSON.stringify(accts)); } catch (e) { toast('Could not save on this device'); } }
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2400); }
+
+function packed() {
+  const json = JSON.stringify(accts.map(a => ({ n: a.n, e: a.e, u: a.u, c: a.c })));
+  return btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function openAcct(i) {
+  const a = accts[i];
+  const home = location.href.split('#')[0].split('?')[0];
+  const url = a.u + (a.u.indexOf('?') < 0 ? '?' : '&') + 'home=' + encodeURIComponent(home) + '&accts=' + encodeURIComponent(packed());
+  toast('Opening ' + (a.n || a.e) + '…');
+  location.href = url;
+}
+
+function render() {
+  document.body.classList.toggle('editing', editing);
+  $('#editBtn').classList.toggle('on', editing);
+  $('#editBtn').textContent = editing ? 'Done' : 'Edit';
+  $('#ttl').style.display = accts.length ? '' : 'none';
+  $('#list').innerHTML = accts.length ? accts.map((a, i) => `
+    <div class="acc" data-i="${i}">
+      <div class="av" style="background:${esc(a.c)}">${esc(((a.n || a.e || '?')[0]).toUpperCase())}</div>
+      <div class="who"><b>${esc(a.n || a.e)}</b><small>${esc(a.e || '')}</small></div>
+      <span class="go">›</span>
+      <div class="ops"><button data-up="${i}">↑</button><button data-ed="${i}">Edit</button><button class="del" data-del="${i}">✕</button></div>
+    </div>`).join('') :
+    `<div class="empty"><b style="color:var(--text)">Add your first Gmail account</b><ol>
+      <li>Open that account's <b>Email Cleaner</b> Google Sheet on a computer.</li>
+      <li>Menu <b>🧹 Email Cleaner → 📱 Get my app link</b>, and copy the link.</li>
+      <li>Tap <b>＋ Add a Gmail account</b> below and paste it.</li></ol>Repeat for each account. Then use Share → <b>Add to Home Screen</b> on this page to get the app icon.</div>`;
+}
+
+function openForm(i) {
+  editIdx = i;
+  const a = i >= 0 ? accts[i] : { n: '', e: '', u: '', c: COLORS[accts.length % COLORS.length] };
+  pick = a.c;
+  $('#sheet').innerHTML = `<div class="grab"></div><h2>${i >= 0 ? 'Edit account' : 'Add a Gmail account'}</h2>
+    <label>Name</label><input class="t" id="fn" placeholder="Personal, Work…" value="${esc(a.n)}">
+    <label>Gmail address</label><input class="t" id="fe" type="email" autocapitalize="off" placeholder="name@gmail.com" value="${esc(a.e)}">
+    <label>App link</label><input class="t" id="fu" autocapitalize="off" autocorrect="off" placeholder="https://script.google.com/macros/s/…/exec?k=…" value="${esc(a.u)}">
+    <div class="hint">From the sheet menu: 🧹 Email Cleaner → 📱 Get my app link</div>
+    <label>Color</label><div class="colors">${COLORS.map(c => `<button data-c="${c}" class="${c === pick ? 'on' : ''}" style="background:${c}"></button>`).join('')}</div>
+    <button class="save" id="fsave">Save</button><button class="ghost" id="fcancel">Cancel</button>`;
+  $('#wrap').classList.add('open');
+}
+function closeForm() { $('#wrap').classList.remove('open'); }
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button,.acc');
+  if (!b) return;
+  if (b.id === 'editBtn') { editing = !editing; history.replaceState(null, '', editing ? '#edit' : location.pathname); return render(); }
+  if (b.id === 'addBtn') return openForm(-1);
+  if (b.id === 'fcancel') return closeForm();
+  if (b.dataset.c) { pick = b.dataset.c; document.querySelectorAll('.colors button').forEach(x => x.classList.toggle('on', x.dataset.c === pick)); return; }
+  if (b.id === 'fsave') {
+    const n = $('#fn').value.trim(), em = $('#fe').value.trim().toLowerCase(), u = $('#fu').value.trim();
+    if (!/^https:\/\/script\.google\.com\/macros\/(u\/\d+\/)?s\/[\w-]+\/exec\?k=\w{20,}/.test(u)) return toast('Paste the full app link (it ends with ?k=…)');
+    const a = { n: n || em || 'Gmail', e: em, u: u, c: pick };
+    if (editIdx >= 0) accts[editIdx] = a; else accts.push(a);
+    saveA(); closeForm(); render(); toast('✓ Saved');
+    return;
+  }
+  if (b.dataset.del != null) { const i = +b.dataset.del; if (confirm('Remove ' + (accts[i].n || accts[i].e) + ' from this launcher?\n(The account itself is not affected.)')) { accts.splice(i, 1); saveA(); render(); } return; }
+  if (b.dataset.ed != null) return openForm(+b.dataset.ed);
+  if (b.dataset.up != null) { const i = +b.dataset.up; if (i > 0) { [accts[i - 1], accts[i]] = [accts[i], accts[i - 1]]; saveA(); render(); } return; }
+  if (b.classList.contains('acc') && !editing) return openAcct(+b.dataset.i);
+});
+$('#scrim').addEventListener('click', closeForm);
+
+loadA(); render();
+</script>
+</body>
+</html>
