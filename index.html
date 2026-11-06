@@ -87,6 +87,7 @@ function packed() {
 }
 function openAcct(i) {
   const a = accts[i];
+  a.u = a.u.replace(/\/macros\/u\/\d+\//, '/macros/').replace(/\/dev\?k=/, '/exec?k=');
   const home = location.href.split('#')[0].split('?')[0];
   const url = a.u + (a.u.indexOf('?') < 0 ? '?' : '&') + 'home=' + encodeURIComponent(home) + '&accts=' + encodeURIComponent(packed());
   toast('Opening ' + (a.n || a.e) + '…');
@@ -134,7 +135,8 @@ document.addEventListener('click', e => {
   if (b.id === 'fcancel') return closeForm();
   if (b.dataset.c) { pick = b.dataset.c; document.querySelectorAll('.colors button').forEach(x => x.classList.toggle('on', x.dataset.c === pick)); return; }
   if (b.id === 'fsave') {
-    const n = $('#fn').value.trim(), em = $('#fe').value.trim().toLowerCase(), u = $('#fu').value.trim();
+    const n = $('#fn').value.trim(), em = $('#fe').value.trim().toLowerCase();
+    const u = $('#fu').value.trim().replace(/\/macros\/u\/\d+\//, '/macros/').replace(/\/dev\?k=/, '/exec?k=');
     if (!/^https:\/\/script\.google\.com\/macros\/(u\/\d+\/)?s\/[\w-]+\/exec\?k=\w{20,}/.test(u)) return toast('Paste the full app link (it ends with ?k=…)');
     const a = { n: n || em || 'Gmail', e: em, u: u, c: pick };
     if (editIdx >= 0) accts[editIdx] = a; else accts.push(a);
