@@ -221,12 +221,12 @@ const SCOPES = 'https://www.googleapis.com/auth/gmail.modify https://www.googlea
 const API = 'https://gmail.googleapis.com/gmail/v1/users/me';
 const REDIRECT = location.origin + location.pathname;
 const FOLDERS = [
+  {id:'all', label:'All mail', q:'in:anywhere -in:trash', spam:true}, // every folder incl. Spam/junk, except Trash
   {id:'inbox', label:'Inbox', q:'in:inbox'},
   {id:'promotions', label:'Promotions', q:'category:promotions'},
   {id:'social', label:'Social', q:'category:social'},
   {id:'updates', label:'Updates', q:'category:updates'},
-  {id:'spam', label:'Spam', q:'in:spam', spam:true},
-  {id:'all', label:'All mail', q:'-in:trash -in:spam'},
+  {id:'spam', label:'Spam only', q:'in:spam', spam:true},
 ];
 
 // ---------- storage ----------
@@ -243,7 +243,7 @@ let state = {
   clientId: store.get('clientId', ''),
   accounts: store.get('accounts', []),          // [email]
   current: store.get('current', null),
-  folder: store.get('folder', 'inbox'),
+  folder: store.get('folder2', 'all'),
   rules: store.get('rules', {}),                // email -> {block:[{pattern, filterId}], keep:[pattern], lastRun, weekly}
   groups: [], selected: new Set(), selMsgs: new Map(), busy: false,
 };
@@ -595,7 +595,7 @@ async function runRules(){
 }
 
 // ---------- events ----------
-$('folderChips').onclick = e => { const b = e.target.closest('[data-f]'); if(!b) return; state.folder = b.dataset.f; store.set('folder', state.folder); renderChips(); };
+$('folderChips').onclick = e => { const b = e.target.closest('[data-f]'); if(!b) return; state.folder = b.dataset.f; store.set('folder2', state.folder); renderChips(); };
 $('btnScan').onclick = scan;
 $('filterInput').oninput = renderGroups;
 $('sortSel').onchange = renderGroups;
