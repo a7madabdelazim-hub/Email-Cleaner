@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mail Cleaner">
+<meta name="theme-color" content="#0f1e3d">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://gmail.googleapis.com; form-action https://accounts.google.com; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<title>Mail Cleaner</title>
+<style>
+  :root{--navy:#0f1e3d;--navy2:#18305e;--gold:#d9aa3c;--bg:#f3f5f9;--card:#fff;--text:#14213d;--muted:#6b7385;--red:#d63c3c;--green:#2e9e5b;--line:#e3e7ef}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px}
+  .hrow{display:flex;align-items:center;gap:8px}
+  .logo{font-weight:700;font-size:18px;flex:1}.logo span{color:var(--gold)}
+  .hbtn{background:var(--navy2);color:#fff;border:0;border-radius:10px;padding:8px 11px;font-size:14px}
+  select,input[type=text],input[type=search],input[type=number]{font:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff;color:var(--text);width:100%}
+  header select{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+  main{padding:12px 12px calc(env(safe-area-inset-bottom) + 110px);max-width:760px;margin:0 auto}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(15,30,61,.08)}
+  h2{font-size:17px;margin:0 0 10px}
+  .muted{color:var(--muted);font-size:13px}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+  .chip{flex:none;border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 12px;font-size:14px;color:var(--text)}
+  .chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  label.l{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+  .btn{border:0;border-radius:12px;padding:12px 14px;font-size:15px;font-weight:600;background:var(--navy);color:#fff;width:100%}
+  .btn.gold{background:var(--gold);color:var(--navy)}
+  .btn.red{background:var(--red)}
+  .btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--line)}
+  .btn.sm{padding:7px 10px;font-size:13px;width:auto;border-radius:9px}
+  .btn:disabled{opacity:.45}
+  .bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:10px}
+  .bar>div{height:100%;width:0;background:var(--gold);transition:width .2s}
+  .tools{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  .tools select{width:auto}
+  .group{background:#fff;border-radius:14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(15,30,61,.07);overflow:hidden}
+  .gh{display:flex;align-items:center;gap:10px;padding:11px 12px}
+  .gh input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:var(--navy)}
+  .gi{flex:1;min-width:0}
+  .gname{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gmail{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .count{background:var(--navy);color:#fff;border-radius:12px;padding:3px 9px;font-weight:700;font-size:13px;flex:none}
+  .badge{font-size:11px;border-radius:6px;padding:2px 6px;margin-left:4px;font-weight:600}
+  .badge.block{background:#fde6e6;color:var(--red)}.badge.keep{background:#e3f5ea;color:var(--green)}
+  .gbody{border-top:1px solid var(--line);padding:8px 12px 12px;display:none}
+  .group.open .gbody{display:block}
+  .gactions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .msg{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #f0f2f6;font-size:13px}
+  .msg:last-child{border-bottom:0}
+  .msg input{margin-top:2px;width:18px;height:18px;accent-color:var(--navy)}
+  .msg .s{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .msg .d{color:var(--muted);flex:none}
+  .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);padding:10px 12px calc(env(safe-area-inset-bottom) + 10px);display:none;box-shadow:0 -4px 14px rgba(15,30,61,.08)}
+  .actionbar.show{display:block}
+  .abrow{display:flex;gap:8px;max-width:760px;margin:0 auto}
+  .abinfo{text-align:center;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 70px);transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:12px;z-index:50;font-size:14px;max-width:90%;display:none}
+  .modal{position:fixed;inset:0;background:rgba(10,18,40,.5);z-index:60;display:none;align-items:flex-end;justify-content:center}
+  .modal.show{display:flex}
+  .sheet{background:#fff;width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 16px)}
+  .sheet h3{margin:0 0 8px}.sheet p{margin:0 0 14px;color:var(--muted)}
+  .sheet .btn{margin-bottom:8px}
+  .rule{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f2f6;font-size:14px}
+  .rule span{flex:1;overflow:hidden;text-overflow:ellipsis}
+  code{background:#eef1f7;border-radius:6px;padding:2px 5px;font-size:12px;word-break:break-all}
+  ol{padding-left:20px}ol li{margin-bottom:6px}
+  .empty{text-align:center;color:var(--muted);padding:30px 10px}
+  .hidden{display:none!important}
+  .banner{background:#fff6dd;border:1px solid #f0d58a;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="logo">Mail <span>Cleaner</span></div>
+    <button class="hbtn" id="btnRules">Rules</button>
+    <button class="hbtn" id="btnSettings">⚙︎</button>
+  </div>
+  <div class="hrow" style="margin-top:8px" id="acctRow">
+    <select id="acctSelect" aria-label="Account"></select>
+    <button class="hbtn" id="btnAdd" style="flex:none">+ Account</button>
+  </div>
+</header>
+
+<main>
+  <!-- SETUP (first run) -->
+  <section id="vSetup" class="hidden">
+    <div class="card">
+      <h2>One-time setup (free, ~5 minutes)</h2>
+      <p class="muted">Gmail only lets an app read your mail if you create a free "client ID" for it in your own Google account. You do this once.</p>
+      <ol>
+        <li>Open <b>console.cloud.google.com</b> → create a project named <b>Mail Cleaner</b>.</li>
+        <li><b>APIs &amp; Services → Library</b> → search <b>Gmail API</b> → <b>Enable</b>.</li>
+        <li><b>OAuth consent screen</b>: User type <b>External</b>, app name Mail Cleaner, your email. Under <b>Test users</b> add <b>every Gmail address</b> you will use here.</li>
+        <li><b>Credentials → Create credentials → OAuth client ID</b> → type <b>Web application</b>.</li>
+        <li>Under <b>Authorized redirect URIs</b> add exactly:<br><code id="redirectShow"></code></li>
+        <li>Copy the <b>Client ID</b> and paste it here:</li>
+      </ol>
+      <input type="text" id="clientIdInput" placeholder="1234-abc.apps.googleusercontent.com" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div style="height:10px"></div>
+      <button class="btn gold" id="btnSaveClient">Save and add my first Gmail</button>
+      <p class="muted" style="margin-top:10px">Your mail never goes to any server except Google's. Nothing is uploaded anywhere else.</p>
+    </div>
+  </section>
+
+  <!-- SCAN -->
+  <section id="vMain" class="hidden">
+    <div id="weeklyBanner" class="banner hidden"></div>
+    <div class="card">
+      <div class="chips" id="folderChips"></div>
+      <div class="grid2">
+        <div><label class="l">Older than</label>
+          <select id="olderThan">
+            <option value="">Any date</option><option value="7d">1 week</option><option value="1m">1 month</option>
+            <option value="6m">6 months</option><option value="1y">1 year</option>
+          </select></div>
+        <div><label class="l">Scan up to</label>
+          <select id="maxScan"><option>500</option><option selected>1000</option><option>2500</option><option>5000</option></select></div>
+      </div>
+      <button class="btn" id="btnScan">Scan &amp; group by sender</button>
+      <div class="bar hidden" id="barWrap"><div id="bar"></div></div>
+      <div class="muted" id="scanStatus" style="margin-top:6px"></div>
+    </div>
+
+    <div id="results" class="hidden">
+      <div class="tools">
+        <input type="search" id="filterInput" placeholder="Search sender…">
+        <select id="sortSel"><option value="count">Most emails</option><option value="size">Biggest</option><option value="date">Newest</option><option value="name">A–Z</option></select>
+      </div>
+      <div class="tools">
+        <button class="btn ghost sm" id="btnSelAll">Select all</button>
+        <button class="btn ghost sm" id="btnSel5">Select senders with 5+</button>
+        <button class="btn ghost sm" id="btnSelNone">Clear</button>
+      </div>
+      <div class="muted" id="summary" style="margin-bottom:8px"></div>
+      <div id="groups"></div>
+    </div>
+  </section>
+
+  <!-- RULES -->
+  <section id="vRules" class="hidden">
+    <div class="card">
+      <h2>Blocked senders <span class="muted" id="rulesAcct"></span></h2>
+      <p class="muted">Blocking creates a Gmail filter, so <b>new mail from them is deleted automatically by Gmail</b> — every day, even when this app is closed. "Clean now" also removes their old mail.</p>
+      <div id="blockList"></div>
+      <div style="height:10px"></div>
+      <div class="tools"><input type="text" id="blockInput" placeholder="name@site.com or @site.com" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="btn sm" id="btnBlockAdd">Block</button></div>
+      <button class="btn red" id="btnRunRules">Clean now: delete all mail from blocked senders</button>
+    </div>
+    <div class="card">
+      <h2>Keep list</h2>
+      <p class="muted">Senders you never want to delete. They're hidden from the scan results.</p>
+      <div id="keepList"></div>
+    </div>
+    <div class="card">
+      <h2>Weekly clean</h2>
+      <p class="muted" id="lastRun"></p>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="weeklyChk"> Remind me in the app every 7 days</label>
+    </div>
+    <button class="btn ghost" id="btnBack">← Back</button>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="vSettings" class="hidden">
+    <div class="card">
+      <h2>Accounts</h2>
+      <div id="acctList"></div>
+    </div>
+    <div class="card">
+      <h2>Google client ID</h2>
+      <input type="text" id="clientIdEdit" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div style="height:8px"></div>
+      <button class="btn ghost" id="btnSaveClient2">Save</button>
+      <p class="muted">Redirect URI to register: <code id="redirectShow2"></code></p>
+    </div>
+    <div class="card">
+      <h2>Install on iPhone</h2>
+      <p class="muted">In Safari tap <b>Share → Add to Home Screen</b>. It opens like an app with its own icon.</p>
+    </div>
+    <button class="btn ghost" id="btnBack2">← Back</button>
+  </section>
+</main>
+
+<div class="actionbar" id="actionBar">
+  <div class="abinfo" id="abInfo"></div>
+  <div class="abrow">
+    <button class="btn red" id="btnDeleteSel">Delete</button>
+    <button class="btn" id="btnBlockSel">Delete &amp; block</button>
+    <button class="btn ghost" id="btnKeepSel" style="flex:0 0 80px">Keep</button>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="sheet">
+  <h3 id="mTitle"></h3><p id="mText"></p>
+  <button class="btn red" id="mOk">OK</button>
+  <button class="btn ghost" id="mCancel">Cancel</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   Mail Cleaner — group Gmail by sender, delete or block in bulk.
+   Runs entirely in your browser. Talks only to Google (sign-in + Gmail API).
+   Data kept on this device: client ID, account list, rules (localStorage);
+   access tokens only for the session (sessionStorage, expire after 1 hour).
+   ===================================================================== */
+
+const DEMO = /[?#&]demo\b/.test(location.href);
+const SCOPES = 'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.settings.basic';
+const API = 'https://gmail.googleapis.com/gmail/v1/users/me';
+const REDIRECT = location.origin + location.pathname;
+const FOLDERS = [
+  {id:'inbox', label:'Inbox', q:'in:inbox'},
+  {id:'promotions', label:'Promotions', q:'category:promotions'},
+  {id:'social', label:'Social', q:'category:social'},
+  {id:'updates', label:'Updates', q:'category:updates'},
+  {id:'spam', label:'Spam', q:'in:spam', spam:true},
+  {id:'all', label:'All mail', q:'-in:trash -in:spam'},
+];
+
+// ---------- storage ----------
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('mc.'+k); return v === null ? d : JSON.parse(v); }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem('mc.'+k, JSON.stringify(v)); }catch{} },
+};
+const tokens = {
+  get(email){ try{ const t = JSON.parse(sessionStorage.getItem('mc.tok.'+email) || 'null'); return t && t.exp > Date.now() + 60000 ? t.token : null; }catch{ return null; } },
+  set(email, token, sec){ sessionStorage.setItem('mc.tok.'+email, JSON.stringify({token, exp: Date.now() + sec*1000})); },
+  clear(email){ sessionStorage.removeItem('mc.tok.'+email); },
+};
+let state = {
+  clientId: store.get('clientId', ''),
+  accounts: store.get('accounts', []),          // [email]
+  current: store.get('current', null),
+  folder: store.get('folder', 'inbox'),
+  rules: store.get('rules', {}),                // email -> {block:[{pattern, filterId}], keep:[pattern], lastRun, weekly}
+  groups: [], selected: new Set(), selMsgs: new Map(), busy: false,
+};
+function rulesFor(email){
+  if(!state.rules[email]) state.rules[email] = {block:[], keep:[], lastRun:null, weekly:true};
+  return state.rules[email];
+}
+function saveRules(){ store.set('rules', state.rules); }
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function toast(msg, ms=2600){ const t=$('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none', ms); }
+function fmtSize(b){ return b > 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.max(1, Math.round(b/1024))+' KB'; }
+function fmtDate(ms){ const d=new Date(ms); return d.toLocaleDateString(undefined,{day:'numeric',month:'short',year: d.getFullYear()===new Date().getFullYear()?undefined:'numeric'}); }
+function confirmBox(title, text, okLabel='OK'){
+  return new Promise(res => {
+    $('mTitle').textContent = title; $('mText').textContent = text; $('mOk').textContent = okLabel;
+    $('modal').classList.add('show');
+    const done = v => { $('modal').classList.remove('show'); $('mOk').onclick = $('mCancel').onclick = null; res(v); };
+    $('mOk').onclick = () => done(true); $('mCancel').onclick = () => done(false);
+  });
+}
+function parseFrom(raw){
+  raw = raw || '';
+  const m = raw.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
+  if(m) return {name: decodeWords(m[1].trim()) || m[2].trim(), email: m[2].trim().toLowerCase()};
+  const e = (raw.match(/[^\s<>"]+@[^\s<>"]+/) || [raw])[0].toLowerCase();
+  return {name: e, email: e};
+}
+function decodeWords(s){ // Gmail API already decodes most headers; this handles leftovers.
+  return s.replace(/=\?([^?]+)\?([BQ])\?([^?]*)\?=/gi, (all, cs, enc, txt) => {
+    try{
+      let bytes;
+      if(enc.toUpperCase()==='B'){ bytes = Uint8Array.from(atob(txt), c => c.charCodeAt(0)); }
+      else { const t = txt.replace(/_/g,' ').replace(/=([0-9A-F]{2})/gi,(m,h)=>String.fromCharCode(parseInt(h,16))); bytes = Uint8Array.from(t, c=>c.charCodeAt(0)); }
+      return new TextDecoder(cs).decode(bytes);
+    }catch{ return all; }
+  });
+}
+function matches(pattern, email){
+  pattern = pattern.toLowerCase();
+  if(pattern.startsWith('@')){ const d = pattern.slice(1); const ed = email.split('@')[1] || ''; return ed === d || ed.endsWith('.'+d); }
+  return email === pattern;
+}
+function unsubLink(h){
+  if(!h) return null;
+  const urls = [...h.matchAll(/<([^>]+)>/g)].map(m => m[1].trim());
+  return urls.find(u => /^https:/i.test(u)) || urls.find(u => /^mailto:/i.test(u)) || urls.find(u => /^http:/i.test(u)) || null;
+}
+
+// ---------- Google sign-in (OAuth 2.0 redirect flow, no libraries) ----------
+function signIn(hint){
+  if(DEMO){ toast('Demo mode: sign-in skipped'); return; }
+  if(!state.clientId){ show('setup'); return; }
+  const st = crypto.getRandomValues(new Uint32Array(4)).join('-');
+  sessionStorage.setItem('mc.oauthState', st);
+  const p = new URLSearchParams({
+    client_id: state.clientId, redirect_uri: REDIRECT, response_type: 'token',
+    scope: SCOPES, include_granted_scopes: 'true', state: st,
+    prompt: hint ? 'none' : 'select_account',
+  });
+  if(hint) p.set('login_hint', hint);
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + p.toString();
+}
+async function handleRedirect(){
+  if(!location.hash.includes('access_token') && !location.hash.includes('error=')) return;
+  const p = new URLSearchParams(location.hash.slice(1));
+  history.replaceState(null, '', REDIRECT);
+  const expected = sessionStorage.getItem('mc.oauthState'); sessionStorage.removeItem('mc.oauthState');
+  if(!expected || p.get('state') !== expected){ toast('Sign-in check failed. Please try again.'); return; }
+  if(p.get('error')){
+    // prompt=none failed (e.g. not signed in on this device) → ask interactively.
+    if(['interaction_required','login_required','consent_required'].includes(p.get('error'))) { signInInteractive(); return; }
+    toast('Google sign-in: ' + p.get('error')); return;
+  }
+  const token = p.get('access_token');
+  const prof = await fetch(API + '/profile', {headers:{Authorization:'Bearer '+token}}).then(r => r.ok ? r.json() : null).catch(()=>null);
+  if(!prof){ toast('Could not read the Gmail profile.'); return; }
+  const email = prof.emailAddress.toLowerCase();
+  tokens.set(email, token, +p.get('expires_in') || 3600);
+  if(!state.accounts.includes(email)){ state.accounts.push(email); store.set('accounts', state.accounts); }
+  state.current = email; store.set('current', email);
+  toast('Signed in: ' + email);
+}
+function signInInteractive(){ const c = state.current; state.current = null; signIn(null); state.current = c; }
+
+// ---------- Gmail API ----------
+async function api(path, opts={}, attempt=0){
+  if(DEMO) return demoApi(path, opts);
+  const email = state.current;
+  const tok = tokens.get(email);
+  if(!tok){ const err = new Error('auth'); err.auth = true; throw err; }
+  const res = await fetch(path.startsWith('http') ? path : API + path, {
+    ...opts, headers: {Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json', ...(opts.headers||{})},
+  });
+  if(res.status === 401){ tokens.clear(email); const err = new Error('auth'); err.auth = true; throw err; }
+  if((res.status === 429 || res.status >= 500) && attempt < 5){ await sleep(500 * 2**attempt + Math.random()*300); return api(path, opts, attempt+1); }
+  if(res.status === 403){
+    const body = await res.json().catch(()=>({}));
+    const reason = body?.error?.errors?.[0]?.reason || '';
+    if(/rateLimit|userRateLimit/i.test(reason) && attempt < 5){ await sleep(1000 * 2**attempt); return api(path, opts, attempt+1); }
+    const err = new Error(body?.error?.message || 'Permission denied'); err.status = 403; throw err;
+  }
+  if(!res.ok){ const body = await res.json().catch(()=>({})); const err = new Error(body?.error?.message || ('HTTP '+res.status)); err.status = res.status; throw err; }
+  return res.status === 204 ? null : res.json().catch(() => null);
+}
+async function pool(items, n, fn, onProgress){
+  let i = 0, done = 0; const out = new Array(items.length);
+  async function worker(){ while(i < items.length){ const k = i++; out[k] = await fn(items[k]); done++; onProgress && onProgress(done, items.length); } }
+  await Promise.all(Array.from({length: Math.min(n, items.length)}, worker));
+  return out;
+}
+function handleError(e){
+  if(e && e.auth){
+    toast('Session expired — signing in again…');
+    setTimeout(() => signIn(state.current), 900);
+    return;
+  }
+  console.error(e);
+  toast('Error: ' + (e.message || e), 4000);
+}
+
+async function listIds(q, max, includeSpam){
+  let ids = [], pageToken = '';
+  while(ids.length < max){
+    const p = new URLSearchParams({q, maxResults: String(Math.min(500, max - ids.length))});
+    if(includeSpam) p.set('includeSpamTrash', 'true');
+    if(pageToken) p.set('pageToken', pageToken);
+    const r = await api('/messages?' + p);
+    ids.push(...(r.messages || []).map(m => m.id));
+    $('scanStatus').textContent = `Found ${ids.length} emails…`;
+    if(!r.nextPageToken) break;
+    pageToken = r.nextPageToken;
+  }
+  return ids;
+}
+async function getMeta(id){
+  const p = 'format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=List-Unsubscribe&fields=id,internalDate,sizeEstimate,payload/headers';
+  try{
+    const m = await api(`/messages/${id}?${p}`);
+    const h = Object.fromEntries((m.payload?.headers || []).map(x => [x.name.toLowerCase(), x.value]));
+    return {id, from: parseFrom(h.from), subject: h.subject || '(no subject)', date: +m.internalDate, size: m.sizeEstimate || 0, unsub: unsubLink(h['list-unsubscribe'])};
+  }catch(e){ if(e.auth) throw e; return null; }
+}
+async function trashIds(ids, onProgress){
+  // Fast path: batchModify (up to 1000 ids per call). Fallback: one trash call per message.
+  let done = 0;
+  for(let i = 0; i < ids.length; i += 1000){
+    const chunk = ids.slice(i, i + 1000);
+    try{
+      await api('/messages/batchModify', {method:'POST', body: JSON.stringify({ids: chunk, addLabelIds:['TRASH'], removeLabelIds:['INBOX','SPAM']})});
+      done += chunk.length; onProgress && onProgress(done, ids.length);
+    }catch(e){
+      if(e.auth) throw e;
+      await pool(chunk, 8, id => api(`/messages/${id}/trash`, {method:'POST'}).catch(err => { if(err.auth) throw err; }), (d) => onProgress && onProgress(done + d, ids.length));
+      done += chunk.length;
+    }
+  }
+}
+async function createBlockFilter(pattern){
+  const from = pattern.startsWith('@') ? pattern.slice(1) : pattern;
+  try{
+    const f = await api('/settings/filters', {method:'POST', body: JSON.stringify({criteria:{from}, action:{addLabelIds:['TRASH'], removeLabelIds:['INBOX']}})});
+    return f?.id || null;
+  }catch(e){
+    if(e.auth) throw e;
+    if(e.status === 400 && /exists/i.test(e.message)) return 'existing';
+    // Fallback: skip the inbox and mark read if Gmail refuses a TRASH action.
+    const f = await api('/settings/filters', {method:'POST', body: JSON.stringify({criteria:{from}, action:{removeLabelIds:['INBOX','UNREAD']}})});
+    return f?.id || null;
+  }
+}
+
+// ---------- views ----------
+function show(view){
+  for(const v of ['Setup','Main','Rules','Settings']) $('v'+v).classList.toggle('hidden', v.toLowerCase() !== view);
+  $('acctRow').classList.toggle('hidden', view === 'setup');
+  updateActionBar();
+  window.scrollTo(0,0);
+}
+function renderHeader(){
+  const sel = $('acctSelect');
+  sel.innerHTML = state.accounts.map(a => `<option ${a===state.current?'selected':''}>${esc(a)}</option>`).join('') || '<option>No account yet</option>';
+}
+function renderChips(){
+  $('folderChips').innerHTML = FOLDERS.map(f => `<button class="chip ${f.id===state.folder?'on':''}" data-f="${f.id}">${f.label}</button>`).join('');
+}
+function renderWeeklyBanner(){
+  const r = state.current && rulesFor(state.current);
+  const b = $('weeklyBanner');
+  if(!r || !r.weekly || !r.block.length){ b.classList.add('hidden'); return; }
+  const days = r.lastRun ? Math.floor((Date.now() - r.lastRun)/86400000) : null;
+  if(days !== null && days < 7){ b.classList.add('hidden'); return; }
+  b.innerHTML = `🧹 Weekly clean is due${days!==null?` (last run ${days} days ago)`:''}. <a href="#" id="runFromBanner"><b>Clean now</b></a>`;
+  b.classList.remove('hidden');
+  $('runFromBanner').onclick = e => { e.preventDefault(); runRules(); };
+}
+
+function visibleGroups(){
+  const f = $('filterInput').value.trim().toLowerCase();
+  const s = $('sortSel').value;
+  let g = state.groups.filter(x => !f || x.email.includes(f) || x.name.toLowerCase().includes(f));
+  const by = {count:(a,b)=>b.msgs.length-a.msgs.length, size:(a,b)=>b.size-a.size, date:(a,b)=>b.last-a.last, name:(a,b)=>a.name.localeCompare(b.name)};
+  return g.sort(by[s]);
+}
+function renderGroups(){
+  const groups = visibleGroups();
+  const total = state.groups.reduce((n,g)=>n+g.msgs.length, 0);
+  $('summary').textContent = `${total} emails from ${state.groups.length} senders`;
+  if(!groups.length){ $('groups').innerHTML = `<div class="empty">Nothing to clean here 🎉</div>`; updateActionBar(); return; }
+  const r = rulesFor(state.current);
+  $('groups').innerHTML = groups.map(g => {
+    const blocked = r.block.some(b => matches(b.pattern, g.email));
+    return `<div class="group" data-e="${esc(g.email)}">
+      <div class="gh">
+        <input type="checkbox" class="gsel" ${state.selected.has(g.email)?'checked':''} aria-label="Select ${esc(g.name)}">
+        <div class="gi" data-toggle="1">
+          <div class="gname">${esc(g.name)}${blocked?'<span class="badge block">blocked</span>':''}</div>
+          <div class="gmail">${esc(g.email)} · ${fmtSize(g.size)} · last ${fmtDate(g.last)}</div>
+        </div>
+        <div class="count" data-toggle="1">${g.msgs.length}</div>
+      </div>
+      <div class="gbody"></div>
+    </div>`;
+  }).join('');
+  updateActionBar();
+}
+function renderGroupBody(el, g){
+  const sel = state.selMsgs.get(g.email) || new Set();
+  el.querySelector('.gbody').innerHTML = `
+    <div class="gactions">
+      <button class="btn red sm" data-a="del">Delete all ${g.msgs.length}</button>
+      <button class="btn sm" data-a="block">Delete &amp; block</button>
+      ${g.unsub ? `<button class="btn gold sm" data-a="unsub">Unsubscribe</button>` : ''}
+      <button class="btn ghost sm" data-a="keep">Keep sender</button>
+    </div>
+    ${g.msgs.slice().sort((a,b)=>b.date-a.date).slice(0,200).map(m => `
+      <label class="msg"><input type="checkbox" class="msel" data-id="${m.id}" ${sel.has(m.id)?'checked':''}>
+      <span class="s">${esc(m.subject)}</span><span class="d">${fmtDate(m.date)}</span></label>`).join('')}
+    ${g.msgs.length>200?`<div class="muted">…and ${g.msgs.length-200} more</div>`:''}`;
+}
+function selectionIds(){
+  const ids = [];
+  for(const g of state.groups){
+    if(state.selected.has(g.email)) ids.push(...g.msgs.map(m=>m.id));
+    else if(state.selMsgs.get(g.email)?.size) ids.push(...state.selMsgs.get(g.email));
+  }
+  return ids;
+}
+function updateActionBar(){
+  const ids = selectionIds();
+  const onMain = !$('vMain').classList.contains('hidden');
+  $('actionBar').classList.toggle('show', onMain && ids.length > 0);
+  $('abInfo').textContent = `${ids.length} emails selected from ${state.selected.size} senders`;
+  $('btnBlockSel').disabled = state.selected.size === 0;
+  $('btnKeepSel').disabled = state.selected.size === 0;
+}
+function renderRules(){
+  const r = rulesFor(state.current);
+  $('rulesAcct').textContent = '· ' + (state.current || '');
+  $('blockList').innerHTML = r.block.length ? r.block.map((b,i) => `<div class="rule"><span>⛔ ${esc(b.pattern)}</span><button class="btn ghost sm" data-unblock="${i}">Unblock</button></div>`).join('') : '<div class="muted">No blocked senders yet.</div>';
+  $('keepList').innerHTML = r.keep.length ? r.keep.map((k,i) => `<div class="rule"><span>✅ ${esc(k)}</span><button class="btn ghost sm" data-unkeep="${i}">Remove</button></div>`).join('') : '<div class="muted">Empty.</div>';
+  $('lastRun').textContent = r.lastRun ? `Last clean: ${new Date(r.lastRun).toLocaleString()}` : 'Never run yet.';
+  $('weeklyChk').checked = !!r.weekly;
+}
+function renderSettings(){
+  $('clientIdEdit').value = state.clientId;
+  $('redirectShow2').textContent = REDIRECT;
+  $('acctList').innerHTML = state.accounts.map((a,i) => `<div class="rule"><span>${esc(a)}</span><button class="btn ghost sm" data-rm="${i}">Remove</button></div>`).join('') || '<div class="muted">No accounts.</div>';
+}
+
+// ---------- actions ----------
+async function scan(){
+  if(state.busy) return;
+  if(!state.current){ signIn(null); return; }
+  const folder = FOLDERS.find(f => f.id === state.folder);
+  const older = $('olderThan').value;
+  const q = folder.q + (older ? ` older_than:${older}` : '');
+  const max = +$('maxScan').value;
+  state.busy = true; $('btnScan').disabled = true; $('barWrap').classList.remove('hidden'); $('bar').style.width = '0%';
+  state.selected.clear(); state.selMsgs.clear();
+  try{
+    const ids = await listIds(q, max, !!folder.spam);
+    if(!ids.length){ state.groups = []; $('scanStatus').textContent = 'No emails found.'; $('results').classList.remove('hidden'); renderGroups(); return; }
+    const metas = await pool(ids, 10, getMeta, (d,t) => { $('bar').style.width = (100*d/t)+'%'; $('scanStatus').textContent = `Reading ${d} / ${t}…`; });
+    const keep = rulesFor(state.current).keep;
+    const map = new Map();
+    for(const m of metas){
+      if(!m || keep.some(k => matches(k, m.from.email))) continue;
+      let g = map.get(m.from.email);
+      if(!g){ g = {email: m.from.email, name: m.from.name, msgs: [], size: 0, last: 0, unsub: null}; map.set(m.from.email, g); }
+      g.msgs.push(m); g.size += m.size; if(m.date > g.last){ g.last = m.date; if(m.unsub) g.unsub = m.unsub; } if(!g.unsub && m.unsub) g.unsub = m.unsub;
+    }
+    state.groups = [...map.values()];
+    $('scanStatus').textContent = `Done: ${ids.length} emails in ${folder.label}.`;
+    $('results').classList.remove('hidden');
+    renderGroups();
+  }catch(e){ handleError(e); }
+  finally{ state.busy = false; $('btnScan').disabled = false; setTimeout(()=>$('barWrap').classList.add('hidden'), 600); }
+}
+
+async function deleteIds(ids, label){
+  if(!ids.length) return false;
+  const ok = await confirmBox(`Delete ${ids.length} emails?`, `${label ? label+' — ' : ''}They go to Gmail's Trash, where you can restore them for 30 days.`, 'Delete');
+  if(!ok) return false;
+  state.busy = true; $('barWrap').classList.remove('hidden');
+  try{
+    await trashIds(ids, (d,t) => { $('bar').style.width = (100*d/t)+'%'; $('scanStatus').textContent = `Deleting ${d} / ${t}…`; });
+    const gone = new Set(ids);
+    for(const g of state.groups){ g.msgs = g.msgs.filter(m => !gone.has(m.id)); g.size = g.msgs.reduce((n,m)=>n+m.size,0); }
+    state.groups = state.groups.filter(g => g.msgs.length);
+    state.selected.clear(); state.selMsgs.clear();
+    $('scanStatus').textContent = `Deleted ${ids.length} emails.`;
+    toast(`🗑 Deleted ${ids.length} emails`);
+    renderGroups();
+    return true;
+  }catch(e){ handleError(e); return false; }
+  finally{ state.busy = false; setTimeout(()=>$('barWrap').classList.add('hidden'), 600); }
+}
+
+async function blockSenders(emails){
+  const r = rulesFor(state.current);
+  let made = 0;
+  for(const email of emails){
+    if(r.block.some(b => b.pattern === email)) continue;
+    try{ const id = await createBlockFilter(email); r.block.push({pattern: email, filterId: id}); made++; }
+    catch(e){ if(e.auth) throw e; toast('Could not create Gmail filter for ' + email + ': ' + e.message, 4000); }
+  }
+  saveRules();
+  return made;
+}
+
+async function runRules(){
+  const r = rulesFor(state.current);
+  if(!r.block.length){ toast('No blocked senders yet.'); return; }
+  try{
+    let ids = [];
+    // Gmail search accepts up to ~1,500 characters per query; batch the senders.
+    for(let i = 0; i < r.block.length; i += 20){
+      const part = r.block.slice(i, i+20).map(b => 'from:' + (b.pattern.startsWith('@') ? b.pattern.slice(1) : b.pattern)).join(' OR ');
+      ids.push(...await listIds(`(${part}) -in:trash`, 5000, true));
+    }
+    ids = [...new Set(ids)];
+    if(!ids.length){ r.lastRun = Date.now(); saveRules(); renderRules(); renderWeeklyBanner(); toast('All clean — nothing from blocked senders.'); return; }
+    if(await deleteIds(ids, 'Mail from your blocked senders')){ r.lastRun = Date.now(); saveRules(); renderRules(); renderWeeklyBanner(); }
+  }catch(e){ handleError(e); }
+}
+
+// ---------- events ----------
+$('folderChips').onclick = e => { const b = e.target.closest('[data-f]'); if(!b) return; state.folder = b.dataset.f; store.set('folder', state.folder); renderChips(); };
+$('btnScan').onclick = scan;
+$('filterInput').oninput = renderGroups;
+$('sortSel').onchange = renderGroups;
+$('btnSelAll').onclick = () => { visibleGroups().forEach(g => state.selected.add(g.email)); renderGroups(); };
+$('btnSel5').onclick = () => { visibleGroups().filter(g => g.msgs.length >= 5).forEach(g => state.selected.add(g.email)); renderGroups(); };
+$('btnSelNone').onclick = () => { state.selected.clear(); state.selMsgs.clear(); renderGroups(); };
+
+$('groups').onclick = async e => {
+  const groupEl = e.target.closest('.group'); if(!groupEl) return;
+  const g = state.groups.find(x => x.email === groupEl.dataset.e); if(!g) return;
+  if(e.target.classList.contains('gsel')){ e.target.checked ? state.selected.add(g.email) : state.selected.delete(g.email); updateActionBar(); return; }
+  if(e.target.classList.contains('msel')){
+    const s = state.selMsgs.get(g.email) || new Set(); e.target.checked ? s.add(e.target.dataset.id) : s.delete(e.target.dataset.id);
+    state.selMsgs.set(g.email, s); updateActionBar(); return;
+  }
+  const a = e.target.closest('[data-a]')?.dataset.a;
+  if(a === 'del'){ await deleteIds(g.msgs.map(m=>m.id), g.name); return; }
+  if(a === 'block'){
+    if(await deleteIds(g.msgs.map(m=>m.id), `${g.name} will also be blocked`)){ try{ await blockSenders([g.email]); toast('⛔ Blocked ' + g.email); }catch(err){ handleError(err); } }
+    return;
+  }
+  if(a === 'unsub'){ window.open(g.unsub, '_blank', 'noopener'); toast('Finish on the page that opened. Tip: also tap "Delete & block".', 4000); return; }
+  if(a === 'keep'){ const r = rulesFor(state.current); if(!r.keep.includes(g.email)) r.keep.push(g.email); saveRules(); state.groups = state.groups.filter(x => x !== g); renderGroups(); toast('✅ Kept: ' + g.email); return; }
+  if(e.target.closest('[data-toggle]')){
+    groupEl.classList.toggle('open');
+    if(groupEl.classList.contains('open')) renderGroupBody(groupEl, g);
+  }
+};
+
+$('btnDeleteSel').onclick = () => deleteIds(selectionIds(), `${state.selected.size} senders`);
+$('btnBlockSel').onclick = async () => {
+  const emails = [...state.selected];
+  if(await deleteIds(selectionIds(), `${emails.length} senders will also be blocked`)){
+    try{ const n = await blockSenders(emails); toast(`⛔ Blocked ${n} senders — Gmail will delete their future mail`, 3500); }catch(err){ handleError(err); }
+  }
+};
+$('btnKeepSel').onclick = () => {
+  const r = rulesFor(state.current);
+  for(const e of state.selected) if(!r.keep.includes(e)) r.keep.push(e);
+  saveRules(); state.groups = state.groups.filter(g => !state.selected.has(g.email)); state.selected.clear(); renderGroups();
+  toast('✅ Added to keep list');
+};
+
+$('acctSelect').onchange = e => {
+  state.current = e.target.value; store.set('current', state.current);
+  state.groups = []; state.selected.clear(); state.selMsgs.clear();
+  $('results').classList.add('hidden'); $('scanStatus').textContent = '';
+  renderWeeklyBanner();
+  if(!DEMO && !tokens.get(state.current)) signIn(state.current);
+};
+$('btnAdd').onclick = () => signInInteractive();
+$('btnRules').onclick = () => { if(!state.current) return toast('Add an account first'); renderRules(); show('rules'); };
+$('btnSettings').onclick = () => { renderSettings(); show('settings'); };
+$('btnBack').onclick = $('btnBack2').onclick = () => { renderWeeklyBanner(); show(state.clientId || DEMO ? 'main' : 'setup'); };
+
+$('btnBlockAdd').onclick = async () => {
+  let p = $('blockInput').value.trim().toLowerCase();
+  if(!p.includes('.')) return toast('Enter an email or @domain');
+  if(!p.includes('@')) p = '@' + p;
+  try{ await blockSenders([p]); $('blockInput').value = ''; renderRules(); toast('⛔ Blocked ' + p); }catch(e){ handleError(e); }
+};
+$('blockList').onclick = async e => {
+  const i = e.target.dataset.unblock; if(i === undefined) return;
+  const r = rulesFor(state.current); const b = r.block[+i];
+  if(!await confirmBox('Unblock ' + b.pattern + '?', 'The Gmail filter is removed; their future mail arrives normally.', 'Unblock')) return;
+  try{ if(b.filterId && b.filterId !== 'existing') await api('/settings/filters/' + b.filterId, {method:'DELETE'}); }
+  catch(err){ if(err.auth) return handleError(err); /* filter already gone: fine */ }
+  r.block.splice(+i, 1); saveRules(); renderRules();
+};
+$('keepList').onclick = e => { const i = e.target.dataset.unkeep; if(i === undefined) return; rulesFor(state.current).keep.splice(+i,1); saveRules(); renderRules(); };
+$('btnRunRules').onclick = runRules;
+$('weeklyChk').onchange = e => { rulesFor(state.current).weekly = e.target.checked; saveRules(); };
+
+function saveClient(v){
+  v = v.trim();
+  if(!/\.apps\.googleusercontent\.com$/.test(v)) { toast('That doesn\'t look like a Google client ID'); return false; }
+  state.clientId = v; store.set('clientId', v); return true;
+}
+$('btnSaveClient').onclick = () => { if(saveClient($('clientIdInput').value)) signIn(null); };
+$('btnSaveClient2').onclick = () => { if(saveClient($('clientIdEdit').value)) toast('Saved'); };
+$('acctList').onclick = async e => {
+  const i = e.target.dataset.rm; if(i === undefined) return;
+  const a = state.accounts[+i];
+  if(!await confirmBox('Remove ' + a + '?', 'Removes it from this app only. Blocked-sender filters stay in Gmail.', 'Remove')) return;
+  state.accounts.splice(+i, 1); delete state.rules[a]; tokens.clear(a); saveRules(); store.set('accounts', state.accounts);
+  if(state.current === a){ state.current = state.accounts[0] || null; store.set('current', state.current); }
+  renderHeader(); renderSettings();
+};
+
+// ---------- demo data (open index.html?demo to try without signing in) ----------
+let demoMail = null;
+function demoApi(path, opts){
+  if(!demoMail){
+    const senders = [['Amazon.sa','store-news@amazon.sa',38],['Noon','noreply@noon.com',27],['LinkedIn','messages-noreply@linkedin.com',22],['Careem','no-reply@careem.com',15],['STC Pay','info@stcpay.com.sa',12],['Medium Daily Digest','noreply@medium.com',9],['Jarir Bookstore','offers@jarir.com',6],['Ali (friend)','ali@gmail.com',3],['Bank Notification','alerts@alrajhibank.com.sa',2]];
+    const subj = ['Your weekly deals','Flash sale ends tonight','New login to your account','Your order has shipped','You have new notifications','Top stories for you','Special offer just for you'];
+    demoMail = []; let n = 0;
+    for(const [name,email,count] of senders) for(let i=0;i<count;i++) demoMail.push({id:'m'+(n++), from:`${name} <${email}>`, subject: subj[(i+n)%subj.length], date: Date.now()-i*86400000*1.7-n*3600000, size: 15000+((n*7919)%90000), unsub: email.includes('gmail')?null:`<https://example.com/unsub/${n}>`});
+  }
+  if(path.startsWith('/messages?')) return Promise.resolve({messages: demoMail.map(m=>({id:m.id}))});
+  const mm = path.match(/^\/messages\/(m\d+)\?/);
+  if(mm){ const m = demoMail.find(x=>x.id===mm[1]); return sleep(4).then(()=>({id:m.id, internalDate:String(m.date), sizeEstimate:m.size, payload:{headers:[{name:'From',value:m.from},{name:'Subject',value:m.subject},...(m.unsub?[{name:'List-Unsubscribe',value:m.unsub}]:[])]}})); }
+  if(path === '/messages/batchModify'){ const ids = new Set(JSON.parse(opts.body).ids); demoMail = demoMail.filter(m=>!ids.has(m.id)); return sleep(300).then(()=>({})); }
+  if(path.startsWith('/settings/filters')) return Promise.resolve({id:'f'+Date.now()});
+  return Promise.resolve({});
+}
+
+// ---------- start ----------
+(async function init(){
+  $('redirectShow').textContent = REDIRECT;
+  if(DEMO){ state.accounts = ['demo@gmail.com']; state.current = 'demo@gmail.com'; state.clientId = 'demo'; state.rules = {}; }
+  await handleRedirect();
+  renderHeader(); renderChips(); renderWeeklyBanner();
+  if(!state.clientId){ show('setup'); return; }
+  show('main');
+  if(location.protocol === 'file:') toast('Open this from your GitHub Pages link — Google sign-in does not work from a local file.', 6000);
+})();
+</script>
+</body>
+</html>
